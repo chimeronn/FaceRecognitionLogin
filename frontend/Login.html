@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    Login with Face ID
+  </head>
+  <body>
+    <h2>Face ID Login</h2>
+    <video id="video" width="512" height="512" autoplay></video>
+    <button onclick="sendFrame()">Login with Face ID</button>
+    <p id="status"></p>
+  </body>
+
+  <script>
+    const video = document.getElementById("video");
+
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      video.srcObject = stream;
+    });
+
+    function sendFrame() {
+      const canvas = document.createElement("canvas");
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, 512, 512);
+      const imageData = canvas.toDataURL("image/jpeg");
+
+      fetch("http://localhost:8080/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: imageData }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          document.getElementById("status").innerText = data.result;
+        });
+    }
+  </script>
+</html>
